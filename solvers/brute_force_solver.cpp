@@ -13,44 +13,41 @@ vector<vector<int>> BruteForceSolver::solve(const vector<int>& places, const map
     return bestCombination;
 }
 
-bool BruteForceSolver::VerifyCapacityAndStops(const vector<int>& route, const map<int, int>& demand, int capacity, int max_stops) {
-    int total_demand = 0;
-    unordered_map<int, int> place_count;
-    for (auto& local : route) {
-        total_demand += demand.at(local);
-        place_count[local]++;
-        if (place_count[local] > max_stops) { return false; }
-    }
-    return total_demand <= capacity;
-}
-
 vector<vector<int>> BruteForceSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph) {
     vector<vector<int>> routes;
     int n = places.size();
     for (int i = 1; i < (1 << n); i++) {
         vector<int> route;
+        int total_demand = 0;
+        unordered_map<int, int> place_count;
+        bool invalid = false;
         for (int j = 0; j < n; j++) {
             if (i & (1 << j)) {
-                route.push_back(places[j]);
+                int place = places[j];
+                route.push_back(place);
+                total_demand += demand.at(place);
+                place_count[place]++;
+                if (total_demand > capacity || place_count[place] > max_stops || !graph.verifyValidRoute(route)) {
+                    invalid = true;
+                    break;
+                }
             }
         }
-        if (VerifyCapacityAndStops(route, demand, capacity, max_stops)) {
-            if (graph.verifyValidRoute(route)) {
-                routes.push_back(route);
-            }
+        if (!invalid) {
+            routes.push_back(route);
         }
     }
     return routes;
 }
 
 bool BruteForceSolver::coversAllCities(const vector<vector<int>>& combination, const vector<int>& places) {
-    set<int> coveredCities;
+    set<int> uncoveredCities(places.begin(), places.end());
     for (const auto& route : combination) {
         for (int city : route) {
-            coveredCities.insert(city);
+            uncoveredCities.erase(city);
         }
     }
-    return coveredCities.size() == places.size();
+    return uncoveredCities.empty();
 }
 
 void BruteForceSolver::FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, int index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph) {
