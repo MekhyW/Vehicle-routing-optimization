@@ -4,10 +4,14 @@
 #include <string>
 #include <map>
 #include <tuple>
+#include <limits>
+#include <chrono>
 #include "graph_class.h"
 #include "brute_force_solver.h"
+#include "heuristic_solver.h"
 
 using namespace std;
+using namespace std::chrono;
 
 void ReadGraph(const string& file, map<int, int>& demand, vector<tuple<int, int, int>>& edges, vector<int>& places, Graph& graph) {
     ifstream infile(file);
@@ -35,25 +39,7 @@ void ReadGraph(const string& file, map<int, int>& demand, vector<tuple<int, int,
     infile.close();
 }
 
-int main(int argc, char* argv[]){
-    if (argc < 3) {
-        cout << "Usage: " << argv[0] << " <file> <capacity>" << endl;
-        return 1;
-    }
-    string file = argv[1];
-    int capacity = stoi(argv[2]);
-    Graph graph;    
-    map<int,int> demand;
-    vector<tuple<int, int , int>> edges;
-    vector<int> places;
-    ReadGraph(file, demand, edges, places, graph);
-    cout << "Local: "  << places.size() << endl;
-    vector<vector<int>> routes = GenerateAllCombinations(places, demand, capacity, graph);
-    cout << "Routes: " << routes.size() << endl;
-    int bestCost = INT_MAX;
-    vector<vector<int>> currentCombination;
-    vector<vector<int>> bestCombination;
-    FindBestCombination(routes, currentCombination, 0, places, bestCost, bestCombination, graph);
+void PrintBestCombination(const vector<vector<int>>& bestCombination, Graph& graph, int bestCost) {
     cout << "Best route combination:" << endl;
     for (const auto& route : bestCombination) {
         cout << "{ ";
@@ -63,5 +49,53 @@ int main(int argc, char* argv[]){
         cout << "} with cost: " << graph.calculateRouteCost(route) << endl;
     }
     cout << "Smallest cost: " << bestCost << endl;
+}
+
+void LogTimeToFile(const string& filename, long long duration) {
+    ofstream clearfile(filename, ios::out | ios::trunc);
+    clearfile.close();
+    ofstream outfile(filename, ios::out | ios::app);
+    if (outfile.is_open()) {
+        outfile << duration << endl;
+        outfile.close();
+    } else {
+        cerr << "Unable to open file: " << filename << endl;
+    }
+}
+
+void SolveAndPrintSolution(const string& file, int capacity, const string& solver) {
+    Graph graph;    
+    map<int,int> demand;
+    vector<tuple<int, int , int>> edges;
+    vector<int> places;
+    int bestCost = numeric_limits<int>::max();
+    ReadGraph(file, demand, edges, places, graph);
+    vector<vector<int>> routes;
+    auto start = high_resolution_clock::now();
+    if (solver == "bruteforce") {
+        routes = BruteForceSolver::solve(places, demand, capacity, graph, bestCost);
+    } else if (solver == "heuristic") {
+        //routes = HeuristicSolver::solve(places, demand, capacity, graph, bestCost);
+    } else {
+        cerr << "Unknown solver: " << solver << endl;
+        return;
+    }
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start).count();
+    cout << "Time taken by solver: " << duration << " ms" << endl;
+    LogTimeToFile("time.txt", duration);
+    PrintBestCombination(routes, graph, bestCost);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc < 4) {
+        cout << "Usage: " << argv[0] << " <file> <capacity> <solver>" << endl;
+        cout << "Available solvers: bruteforce" << endl;
+        return 1;
+    }
+    string file = argv[1];
+    int capacity = stoi(argv[2]);
+    string solver = argv[3];
+    SolveAndPrintSolution(file, capacity, solver);
     return 0;
 }

@@ -5,7 +5,6 @@ SRC_DIR = src
 INCLUDE_DIR = include
 SOLVERS_DIR = solvers
 
-# Source files
 SRCS = $(SRC_DIR)/main.cpp \
        $(SOLVERS_DIR)/brute_force_solver.cpp \
        $(SOLVERS_DIR)/heuristic_solver.cpp \
@@ -16,7 +15,6 @@ SRCS = $(SRC_DIR)/main.cpp \
 
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-# Target executable
 TARGET = main
 
 all: $(TARGET)

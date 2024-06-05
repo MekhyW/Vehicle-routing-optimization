@@ -2,15 +2,25 @@
 #include <set>
 #include <stack>
 
-bool VerifyCapacity(const vector<int>& route, const map<int,int>& demand, int capacity){
+using namespace std;
+
+vector<vector<int>> BruteForceSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, Graph& graph, int& bestCost) {
+    vector<vector<int>> routes = GenerateAllCombinations(places, demand, capacity, graph);
+    vector<vector<int>> currentCombination;
+    vector<vector<int>> bestCombination;
+    FindBestCombination(routes, currentCombination, 0, places, bestCost, bestCombination, graph);
+    return bestCombination;
+}
+
+bool BruteForceSolver::VerifyCapacity(const vector<int>& route, const map<int, int>& demand, int capacity) {
     int total_demand = 0;
-    for (auto& local : route){
+    for (auto& local : route) {
         total_demand += demand.at(local);
     }
     return total_demand <= capacity;
 }
 
-vector<vector<int>> GenerateAllCombinations(const vector<int>& places, const map<int,int>& demand, int capacity, Graph& graph) {
+vector<vector<int>> BruteForceSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, Graph& graph) {
     vector<vector<int>> routes;
     int n = places.size();
     for (int i = 1; i < (1 << n); i++) {
@@ -20,8 +30,8 @@ vector<vector<int>> GenerateAllCombinations(const vector<int>& places, const map
                 route.push_back(places[j]);
             }
         }
-        if (VerifyCapacity(route, demand, capacity)){
-            if (graph.verifyValidRoute(route)){
+        if (VerifyCapacity(route, demand, capacity)) {
+            if (graph.verifyValidRoute(route)) {
                 routes.push_back(route);
             }
         }
@@ -29,7 +39,7 @@ vector<vector<int>> GenerateAllCombinations(const vector<int>& places, const map
     return routes;
 }
 
-bool coversAllCities(const vector<vector<int>>& combination, const vector<int>& places) {
+bool BruteForceSolver::coversAllCities(const vector<vector<int>>& combination, const vector<int>& places) {
     set<int> coveredCities;
     for (const auto& route : combination) {
         for (int city : route) {
@@ -39,8 +49,7 @@ bool coversAllCities(const vector<vector<int>>& combination, const vector<int>& 
     return coveredCities.size() == places.size();
 }
 
-void FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, int index, 
-                         const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph) {
+void BruteForceSolver::FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, int index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph) {
     stack<pair<int, int>> stack;
     stack.push(make_pair(index, 0));
     while (!stack.empty()) {
