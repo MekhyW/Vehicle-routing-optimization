@@ -1,38 +1,36 @@
 CXX = g++
+CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -fopenmp -I$(INCLUDE_DIR)
+BUILD_DIR = build
+SRC_DIR = src
+INCLUDE_DIR = include
+SOLVERS_DIR = solvers
 
-CXXFLAGS = -Wall -Wextra -std=c++17
-
-SRC_DIR = .
-BUILD_DIR = ./build
-SOLVERS_DIR = ./solvers
-INCLUDE_DIR = ./include
-
+# Source files
 SRCS = $(SRC_DIR)/main.cpp \
        $(SOLVERS_DIR)/brute_force_solver.cpp \
        $(SOLVERS_DIR)/heuristic_solver.cpp \
        $(SOLVERS_DIR)/mpi_solver.cpp \
 	   $(SOLVERS_DIR)/openmp_solver.cpp \
-	   $(SOLVERS_DIR)/openmp-mpi_solver.cpp
+	   $(SOLVERS_DIR)/openmp-mpi_solver.cpp \
+	   $(SRC_DIR)/graph_class.cpp
 
-OBJS = $(BUILD_DIR)/main.o \
-	   $(BUILD_DIR)/brute_force_solver.o \
-	   $(BUILD_DIR)/heuristic_solver.o \
-	   $(BUILD_DIR)/mpi_solver.o \
-	   $(BUILD_DIR)/openmp_solver.o \
-	   $(BUILD_DIR)/openmp-mpi_solver.o
+OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
+# Target executable
 TARGET = main
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(BUILD_DIR)/main.o: $(SRC_DIR)/main.cpp
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: $(SOLVERS_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(BUILD_DIR)/*.o $(TARGET)
+
+.PHONY: clean all
