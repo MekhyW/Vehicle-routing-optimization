@@ -18,4 +18,4 @@ private:
     static void FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, int index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph);
 };
 
-#endif // BRUTE_FORCE_ES_SOLVER_H
+#endif

@@ -1,53 +1,116 @@
 #include "heuristic_solver.h"
-#include <set>
-#include <limits>
+#include <algorithm>
+#include <unordered_map>
+#include <iostream>
+#include <limits.h>
 
 using namespace std;
 
-vector<vector<int>> HeuristicSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, Graph& graph, int& bestCost) {
-    vector<vector<int>> bestCombination;
-    vector<vector<int>> currentCombination;
-    vector<int> route = NearestNeighbor(places, graph);
-    if (VerifyCapacity(route, demand, capacity)) {
-        currentCombination.push_back(route);
-        int currentCost = graph.calculateRouteCost(route);
-        if (currentCost < bestCost) {
-            bestCost = currentCost;
-            bestCombination = currentCombination;
+vector<vector<int>> HeuristicSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph, int& bestCost) {
+    vector<vector<int>> initialSolution = ConstructInitialSolution(places, demand, capacity, max_stops);
+    cout << "Initial Solution: " << endl;
+    for (const auto& route : initialSolution) {
+        for (int place : route) {
+            cout << place << " ";
         }
+        cout << endl;
     }
-    return bestCombination;
+    vector<vector<int>> improvedSolution = LocalSearch(initialSolution, demand, capacity, graph, bestCost);
+    return improvedSolution;
 }
 
-vector<int> HeuristicSolver::NearestNeighbor(const vector<int>& places, Graph& graph) {
+vector<vector<int>> HeuristicSolver::ConstructInitialSolution(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops) {
+    vector<vector<int>> solution;
     vector<int> route;
-    set<int> visited;
-    int current = places[0];
-    route.push_back(current);
-    visited.insert(current);
-    while (route.size() < places.size()) {
-        int nearest = -1;
-        int minDistance = numeric_limits<int>::max();
-        for (int place : places) {
-            if (visited.find(place) == visited.end()) {
-                int distance = graph.getEdgeWeight(current, place);
-                if (distance < minDistance) {
-                    nearest = place;
-                    minDistance = distance;
+    int remainingCapacity = capacity;
+    int currentStopCount = 0;
+    for (int place : places) {
+        if (demand.at(place) > remainingCapacity || currentStopCount >= max_stops) {
+            solution.push_back(route);
+            route.clear();
+            remainingCapacity = capacity;
+            currentStopCount = 0;
+        }
+        route.push_back(place);
+        remainingCapacity -= demand.at(place);
+        currentStopCount++;
+    }
+    if (!route.empty()) {
+        solution.push_back(route);
+    }
+    return solution;
+}
+
+vector<vector<int>> HeuristicSolver::LocalSearch(vector<vector<int>>& initialSolution, const map<int, int>& demand, int capacity, Graph& graph, int& bestCost, int max_stops) {
+    vector<vector<int>> currentSolution = initialSolution;
+    bestCost = CalculateTotalCost(currentSolution, graph);
+    bool improved = true;
+    while (improved) {
+        improved = false;
+        for (size_t routeIndex = 0; routeIndex < currentSolution.size(); ++routeIndex) {
+            auto& route = currentSolution[routeIndex];
+            for (size_t i = 0; i < route.size(); ++i) {
+                for (size_t j = i + 1; j < route.size(); ++j) {
+                    vector<int> newRoute = TwoOptSwap(route, i, j);
+                    if (VerifyCapacityAndStops(newRoute, demand, capacity, max_stops)) {
+                        if (verifyValidRoute(newRoute, graph)) {
+                            int newRouteCost = calculateRouteCost(newRoute, graph);
+                            int currentRouteCost = calculateRouteCost(route, graph);
+                            if (newRouteCost < currentRouteCost) {
+                                route = newRoute;
+                                improved = true;
+                                int newSolutionCost = CalculateTotalCost(currentSolution, graph);
+                                if (newSolutionCost < bestCost) {
+                                    bestCost = newSolutionCost;
+                                    cout << "Improved Solution Found: Cost = " << bestCost << endl;
+                                    for (const auto& r : currentSolution) {
+                                        for (int p : r) {
+                                            cout << p << " ";
+                                        }
+                                        cout << endl;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-        current = nearest;
-        route.push_back(current);
-        visited.insert(current);
     }
-    return route;
+    return currentSolution;
 }
 
-bool HeuristicSolver::VerifyCapacity(const vector<int>& route, const map<int, int>& demand, int capacity) {
-    int total_demand = 0;
-    for (auto& local : route) {
-        total_demand += demand.at(local);
+int HeuristicSolver::CalculateTotalCost(const vector<vector<int>>& solution, Graph& graph) {
+    int totalCost = 0;
+    for (const auto& route : solution) {
+        totalCost += calculateRouteCost(route, graph);
     }
-    return total_demand <= capacity;
+    return totalCost;
+}
+
+vector<int> HeuristicSolver::TwoOptSwap(const vector<int>& route, size_t i, size_t j) {
+    vector<int> newRoute = route;
+    reverse(newRoute.begin() + i, newRoute.begin() + j + 1);
+    return newRoute;
+}
+
+bool HeuristicSolver::VerifyCapacityAndStops(const vector<int>& route, const map<int, int>& demand, int capacity, int max_stops) {
+    int total_demand = 0;
+    unordered_map<int, int> place_count;
+    for (int place : route) {
+        total_demand += demand.at(place);
+        place_count[place]++;
+        if (total_demand > capacity || place_count[place] > max_stops) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int HeuristicSolver::calculateRouteCost(const vector<int>& route, Graph& graph) {
+    return graph.calculateRouteCost(route);
+}
+
+bool HeuristicSolver::verifyValidRoute(const vector<int>& route, Graph& graph) {
+    return graph.verifyValidRoute(route);
 }
