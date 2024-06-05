@@ -75,9 +75,9 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
     vector<vector<int>> routes;
     auto start = high_resolution_clock::now();
     if (solver == "bruteforce") {
-        routes = BruteForceSolver::solve(places, demand, capacity, graph, bestCost);
+        routes = BruteForceSolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else if (solver == "heuristic") {
-        routes = HeuristicSolver::solve(places, demand, capacity, graph, bestCost);
+        //routes = HeuristicSolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else {
         cerr << "Unknown solver: " << solver << endl;
         return;

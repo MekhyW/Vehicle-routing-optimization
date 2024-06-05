@@ -1,26 +1,30 @@
 #include "brute_force_solver.h"
 #include <set>
 #include <stack>
+#include <unordered_map>
 
 using namespace std;
 
-vector<vector<int>> BruteForceSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, Graph& graph, int& bestCost) {
-    vector<vector<int>> routes = GenerateAllCombinations(places, demand, capacity, graph);
+vector<vector<int>> BruteForceSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph, int& bestCost) {
+    vector<vector<int>> routes = GenerateAllCombinations(places, demand, capacity, max_stops, graph);
     vector<vector<int>> currentCombination;
     vector<vector<int>> bestCombination;
     FindBestCombination(routes, currentCombination, 0, places, bestCost, bestCombination, graph);
     return bestCombination;
 }
 
-bool BruteForceSolver::VerifyCapacity(const vector<int>& route, const map<int, int>& demand, int capacity) {
+bool BruteForceSolver::VerifyCapacityAndStops(const vector<int>& route, const map<int, int>& demand, int capacity, int max_stops) {
     int total_demand = 0;
+    unordered_map<int, int> place_count;
     for (auto& local : route) {
         total_demand += demand.at(local);
+        place_count[local]++;
+        if (place_count[local] > max_stops) { return false; }
     }
     return total_demand <= capacity;
 }
 
-vector<vector<int>> BruteForceSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, Graph& graph) {
+vector<vector<int>> BruteForceSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph) {
     vector<vector<int>> routes;
     int n = places.size();
     for (int i = 1; i < (1 << n); i++) {
@@ -30,7 +34,7 @@ vector<vector<int>> BruteForceSolver::GenerateAllCombinations(const vector<int>&
                 route.push_back(places[j]);
             }
         }
-        if (VerifyCapacity(route, demand, capacity)) {
+        if (VerifyCapacityAndStops(route, demand, capacity, max_stops)) {
             if (graph.verifyValidRoute(route)) {
                 routes.push_back(route);
             }
