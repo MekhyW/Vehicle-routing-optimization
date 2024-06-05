@@ -13,14 +13,13 @@ def generate_graph_entries(num_nodes, max_weight=100, probability=0.25):
             if random.random() > (1 - probability):
                 weight = random.randint(1, max_weight)
                 graph[(i, j)] = weight
-
     return graph
 
 num_nodes = int(input("Enter the number of nodes: "))
 demands = generate_demand_dictionary(num_nodes)
 graph = generate_graph_entries(num_nodes)
 
-with open('graph.txt', 'w') as file:
+with open(f'graph-{num_nodes}.txt', 'w') as file:
     file.write(str(num_nodes) + "\n")
     for location, demand in demands.items():
         line = f"{location} {demand}\n"

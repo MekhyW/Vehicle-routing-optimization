@@ -6,12 +6,14 @@
 #include <tuple>
 #include <limits>
 #include <chrono>
+#include <filesystem>
 #include "graph_class.h"
 #include "brute_force_solver.h"
 #include "heuristic_solver.h"
 
 using namespace std;
 using namespace std::chrono;
+namespace fs = std::filesystem;
 
 void ReadGraph(const string& file, map<int, int>& demand, vector<tuple<int, int, int>>& edges, vector<int>& places, Graph& graph) {
     ifstream infile(file);
@@ -63,8 +65,8 @@ void LogTimeToFile(const string& filename, long long duration) {
     }
 }
 
-void SolveAndPrintSolution(const string& file, int capacity, const string& solver) {
-    Graph graph;    
+void SolveAndLogTime(const string& file, int capacity, const string& solver, const string& output_file) {
+    Graph graph;
     map<int,int> demand;
     vector<tuple<int, int , int>> edges;
     vector<int> places;
@@ -83,19 +85,25 @@ void SolveAndPrintSolution(const string& file, int capacity, const string& solve
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start).count();
     cout << "Time taken by solver: " << duration << " ms" << endl;
-    LogTimeToFile("time.txt", duration);
+    LogTimeToFile(output_file, duration);
     PrintBestCombination(routes, graph, bestCost);
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 4) {
-        cout << "Usage: " << argv[0] << " <file> <capacity> <solver>" << endl;
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " <capacity> <solver>" << endl;
         cout << "Available solvers: bruteforce, heuristic" << endl;
         return 1;
     }
-    string file = argv[1];
-    int capacity = stoi(argv[2]);
-    string solver = argv[3];
-    SolveAndPrintSolution(file, capacity, solver);
+    int capacity = stoi(argv[1]);
+    string solver = argv[2];
+    for (const auto& entry : fs::directory_iterator("input")) {
+        if (entry.is_regular_file() && entry.path().filename() != ".gitkeep") {
+            string input_file = entry.path().string();
+            string output_file = "output/" + entry.path().filename().string() + "_time.txt";
+            cout << "Solving: " << input_file << endl;
+            SolveAndLogTime(input_file, capacity, solver, output_file);
+        }
+    }
     return 0;
 }
