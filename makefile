@@ -7,6 +7,7 @@ SOLVERS_DIR = solvers
 
 SRCS = $(SRC_DIR)/main.cpp \
        $(SOLVERS_DIR)/brute_force_solver.cpp \
+	   $(SOLVERS_DIR)/brute_force_ES_solver.cpp \
        $(SOLVERS_DIR)/heuristic_solver.cpp \
        $(SOLVERS_DIR)/mpi_solver.cpp \
 	   $(SOLVERS_DIR)/openmp_solver.cpp \

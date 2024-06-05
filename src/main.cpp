@@ -9,6 +9,7 @@
 #include <filesystem>
 #include "graph_class.h"
 #include "brute_force_solver.h"
+#include "brute_force_ES_solver.h"
 #include "heuristic_solver.h"
 
 using namespace std;
@@ -42,15 +43,15 @@ void ReadGraph(const string& file, map<int, int>& demand, vector<tuple<int, int,
 }
 
 void PrintBestCombination(const vector<vector<int>>& bestCombination, Graph& graph, int bestCost) {
-    cout << "Best route combination:" << endl;
+    std::cout << "Best route combination:" << endl;
     for (const auto& route : bestCombination) {
-        cout << "{ ";
+        std::cout << "{ ";
         for (int city : route) {
-            cout << city << " ";
+            std::cout << city << " ";
         }
-        cout << "} with cost: " << graph.calculateRouteCost(route) << endl;
+        std::cout << "} with cost: " << graph.calculateRouteCost(route) << endl;
     }
-    cout << "Smallest cost: " << bestCost << endl;
+    std::cout << "Smallest cost: " << bestCost << endl;
 }
 
 void LogTimeToFile(const string& filename, long long duration) {
@@ -76,6 +77,8 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
     auto start = high_resolution_clock::now();
     if (solver == "bruteforce") {
         routes = BruteForceSolver::solve(places, demand, capacity, 6, graph, bestCost);
+    } else if (solver == "bruteforce-es") {
+        routes = BruteForceESSolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else if (solver == "heuristic") {
         //routes = HeuristicSolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else {
@@ -84,15 +87,15 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
     }
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start).count();
-    cout << "Time taken by solver: " << duration << " ms" << endl;
+    std::cout << "Time taken by solver: " << duration << " ms" << endl;
     LogTimeToFile(output_file, duration);
     PrintBestCombination(routes, graph, bestCost);
 }
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        cout << "Usage: " << argv[0] << " <capacity> <solver>" << endl;
-        cout << "Available solvers: bruteforce, heuristic" << endl;
+        std::cout << "Usage: " << argv[0] << " <capacity> <solver>" << endl;
+        std::cout << "Available solvers: bruteforce, bruteforce-es, heuristic" << endl;
         return 1;
     }
     int capacity = stoi(argv[1]);
@@ -101,7 +104,7 @@ int main(int argc, char* argv[]) {
         if (entry.is_regular_file() && entry.path().filename() != ".gitkeep") {
             string input_file = entry.path().string();
             string output_file = "output/" + entry.path().filename().string() + "_time.txt";
-            cout << "Solving: " << input_file << endl;
+            std::cout << "Solving: " << input_file << endl;
             SolveAndLogTime(input_file, capacity, solver, output_file);
         }
     }
