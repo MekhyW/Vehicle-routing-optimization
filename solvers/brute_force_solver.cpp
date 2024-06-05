@@ -61,7 +61,7 @@ void FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>&
                 continue;
             }
         }
-        if (option == 0 && i < routes.size()) {
+        if (option == 0 && static_cast<size_t>(i) < routes.size()) {
             currentCombination.push_back(routes[i]);
             stack.push(make_pair(i, 1));
             stack.push(make_pair(i + 1, 0));

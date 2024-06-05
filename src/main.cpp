@@ -36,12 +36,12 @@ void ReadGraph(const string& file, map<int, int>& demand, vector<tuple<int, int,
 }
 
 int main(int argc, char* argv[]){
-    if (argc < 2) {
-        cout << "Usage: " << argv[0] << " <file>" << endl;
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " <file> <capacity>" << endl;
         return 1;
     }
     string file = argv[1];
-    int capacity = 10;
+    int capacity = stoi(argv[2]);
     Graph graph;    
     map<int,int> demand;
     vector<tuple<int, int , int>> edges;
