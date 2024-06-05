@@ -75,7 +75,7 @@ void SolveAndPrintSolution(const string& file, int capacity, const string& solve
     if (solver == "bruteforce") {
         routes = BruteForceSolver::solve(places, demand, capacity, graph, bestCost);
     } else if (solver == "heuristic") {
-        //routes = HeuristicSolver::solve(places, demand, capacity, graph, bestCost);
+        routes = HeuristicSolver::solve(places, demand, capacity, graph, bestCost);
     } else {
         cerr << "Unknown solver: " << solver << endl;
         return;
@@ -90,7 +90,7 @@ void SolveAndPrintSolution(const string& file, int capacity, const string& solve
 int main(int argc, char* argv[]) {
     if (argc < 4) {
         cout << "Usage: " << argv[0] << " <file> <capacity> <solver>" << endl;
-        cout << "Available solvers: bruteforce" << endl;
+        cout << "Available solvers: bruteforce, heuristic" << endl;
         return 1;
     }
     string file = argv[1];

@@ -9,7 +9,7 @@ int Graph::calculateRouteCost(const vector<int>& route) {
     route_copy.push_back(0);
     route_copy.insert(route_copy.begin(), 0);
     int cost = 0;
-    for (int i = 0; i < route_copy.size() - 1; i++) {
+    for (int i = 0; static_cast<size_t>(i) < route_copy.size() - 1; i++) {
         int origin = route_copy[i];
         int destination = route_copy[i + 1];
 
@@ -24,7 +24,7 @@ int Graph::calculateRouteCost(const vector<int>& route) {
 }
 
 bool Graph::verifyValidRoute(const vector<int>& route) {
-    for (int i = 0; i < route.size() - 1; i++) {
+    for (int i = 0; static_cast<size_t>(i) < route.size() - 1; i++) {
         int origin = route[i];
         int destination = route[i + 1];
         if (adjacencies.find(origin) == adjacencies.end()) {
@@ -42,4 +42,13 @@ bool Graph::verifyValidRoute(const vector<int>& route) {
         }
     }
     return true;
+}
+
+int Graph::getEdgeWeight(int current, int place) {
+    for (auto edge : adjacencies[current]) {
+        if (edge.first == place) {
+            return edge.second;
+        }
+    }
+    return -1;
 }

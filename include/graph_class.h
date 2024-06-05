@@ -14,6 +14,7 @@ public:
     void addEdge(int origin, int destination, int weight);
     int calculateRouteCost(const vector<int>& route);
     bool verifyValidRoute(const vector<int>& route);
+    int getEdgeWeight(int origin, int destination);
 };
 
 #endif // GRAPH_CLASS_H
