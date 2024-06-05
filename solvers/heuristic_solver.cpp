@@ -1,6 +1,5 @@
 #include "heuristic_solver.h"
 #include <algorithm>
-#include <unordered_map>
 #include <iostream>
 #include <limits.h>
 
@@ -8,13 +7,6 @@ using namespace std;
 
 vector<vector<int>> HeuristicSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph, int& bestCost) {
     vector<vector<int>> initialSolution = ConstructInitialSolution(places, demand, capacity, max_stops);
-    cout << "Initial Solution: " << endl;
-    for (const auto& route : initialSolution) {
-        for (int place : route) {
-            cout << place << " ";
-        }
-        cout << endl;
-    }
     vector<vector<int>> improvedSolution = LocalSearch(initialSolution, demand, capacity, graph, bestCost);
     return improvedSolution;
 }
@@ -44,32 +36,23 @@ vector<vector<int>> HeuristicSolver::ConstructInitialSolution(const vector<int>&
 vector<vector<int>> HeuristicSolver::LocalSearch(vector<vector<int>>& initialSolution, const map<int, int>& demand, int capacity, Graph& graph, int& bestCost, int max_stops) {
     vector<vector<int>> currentSolution = initialSolution;
     bestCost = CalculateTotalCost(currentSolution, graph);
+    cout << "Initial cost: " << bestCost << endl;
     bool improved = true;
     while (improved) {
         improved = false;
         for (size_t routeIndex = 0; routeIndex < currentSolution.size(); ++routeIndex) {
             auto& route = currentSolution[routeIndex];
-            for (size_t i = 0; i < route.size(); ++i) {
+            for (size_t i = 0; i < route.size() - 1; ++i) {
                 for (size_t j = i + 1; j < route.size(); ++j) {
                     vector<int> newRoute = TwoOptSwap(route, i, j);
                     if (VerifyCapacityAndStops(newRoute, demand, capacity, max_stops)) {
                         if (verifyValidRoute(newRoute, graph)) {
                             int newRouteCost = calculateRouteCost(newRoute, graph);
-                            int currentRouteCost = calculateRouteCost(route, graph);
-                            if (newRouteCost < currentRouteCost) {
+                            if (newRouteCost < bestCost) {
+                                cout << "Improved route: " << newRouteCost << endl;
                                 route = newRoute;
+                                bestCost = newRouteCost;
                                 improved = true;
-                                int newSolutionCost = CalculateTotalCost(currentSolution, graph);
-                                if (newSolutionCost < bestCost) {
-                                    bestCost = newSolutionCost;
-                                    cout << "Improved Solution Found: Cost = " << bestCost << endl;
-                                    for (const auto& r : currentSolution) {
-                                        for (int p : r) {
-                                            cout << p << " ";
-                                        }
-                                        cout << endl;
-                                    }
-                                }
                             }
                         }
                     }
