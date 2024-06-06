@@ -11,6 +11,9 @@
 #include "brute_force_solver.h"
 #include "brute_force_ES_solver.h"
 #include "heuristic_solver.h"
+#include "openmp_solver.h"
+#include "mpi_solver.h"
+#include "openmp-mpi_solver.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -81,6 +84,12 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
         routes = BruteForceESSolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else if (solver == "heuristic") {
         routes = HeuristicSolver::solve(places, demand, capacity, 6, graph, bestCost);
+    } else if (solver == "openmp") {
+        routes = OpenMPSolver::solve(places, demand, capacity, 6, graph, bestCost);
+    } else if (solver == "openmp-mpi") {
+        //routes = OpenMPMPISolver::solve(places, demand, capacity, 6, graph, bestCost);
+    } else if (solver == "mpi") {
+        //routes = MPISolver::solve(places, demand, capacity, 6, graph, bestCost);
     } else {
         cerr << "Unknown solver: " << solver << endl;
         return;
@@ -95,7 +104,7 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << " <capacity> <solver>" << endl;
-        std::cout << "Available solvers: bruteforce, bruteforce-es, heuristic" << endl;
+        std::cout << "Available solvers: bruteforce, bruteforce-es, heuristic, openmp" << endl;
         return 1;
     }
     int capacity = stoi(argv[1]);
