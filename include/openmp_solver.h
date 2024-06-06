@@ -16,6 +16,7 @@ private:
     static vector<vector<int>> GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph);
     static bool coversAllCities(const vector<vector<int>>& combination, const vector<int>& places);
     static void FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, size_t index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph);
+    static int CalculateTotalCost(const vector<vector<int>>& solution, Graph& graph);
 };
 
 #endif

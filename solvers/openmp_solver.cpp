@@ -11,10 +11,18 @@ vector<vector<int>> OpenMPSolver::solve(const vector<int>& places, const map<int
     vector<vector<int>> bestCombination;
     int num_threads = omp_get_max_threads();
     omp_set_num_threads(num_threads);
-    #pragma omp parallel for shared(bestCost, bestCombination) schedule(dynamic)
-    for (size_t i = 0; i < routes.size(); ++i) {
-        vector<vector<int>> currentCombination;
-        FindBestCombination(routes, currentCombination, i, places, bestCost, bestCombination, graph);
+    #pragma omp parallel
+    {
+        #pragma omp single nowait
+        {
+            for (size_t i = 0; i < routes.size(); ++i) {
+                #pragma omp task
+                {
+                    vector<vector<int>> currentCombination;
+                    FindBestCombination(routes, currentCombination, i, places, bestCost, bestCombination, graph);
+                }
+            }
+        }
     }
     return bestCombination;
 }
@@ -22,7 +30,6 @@ vector<vector<int>> OpenMPSolver::solve(const vector<int>& places, const map<int
 vector<vector<int>> OpenMPSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph) {
     vector<vector<int>> routes;
     int n = places.size();
-    #pragma omp parallel for shared(routes) schedule(dynamic)
     for (int i = 1; i < (1 << n); i++) {
         vector<int> route;
         int total_demand = 0;
@@ -41,13 +48,19 @@ vector<vector<int>> OpenMPSolver::GenerateAllCombinations(const vector<int>& pla
             }
         }
         if (!invalid) {
-            #pragma omp critical
-            {
-                routes.push_back(route);
-            }
+            routes.push_back(route);
         }
     }
     return routes;
+}
+
+int OpenMPSolver::CalculateTotalCost(const vector<vector<int>>& routes, Graph& graph) {
+    int totalCost = 0;
+    #pragma omp parallel for reduction(+:totalCost)
+    for (size_t i = 0; i < routes.size(); ++i) {
+        totalCost += graph.calculateRouteCost(routes[i]);
+    }
+    return totalCost;
 }
 
 bool OpenMPSolver::coversAllCities(const vector<vector<int>>& combination, const vector<int>& places) {
@@ -70,10 +83,7 @@ void OpenMPSolver::FindBestCombination(const vector<vector<int>>& routes, vector
         int option = top.second;
         if (option == 0) {
             if (coversAllCities(currentCombination, places)) {
-                int totalCost = 0;
-                for (const auto& route : currentCombination) {
-                    totalCost += graph.calculateRouteCost(route);
-                }
+                int totalCost = CalculateTotalCost(currentCombination, graph);
                 if (totalCost < bestCost) {
                     #pragma omp critical
                     {
