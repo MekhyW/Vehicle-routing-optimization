@@ -105,9 +105,9 @@ This will generate a graph with the specified number of nodes and save it to a f
 #### 6. Run the Program
 After generating input graphs or preparing them manually, you can execute the program. Use the following command:
 ```bash
-./main <capacity> <solver>
+./main <capacity> <max_stops> <solver>
 ```
-Replace `<capacity>` with the maximum capacity of the vehicles and `<solver>` with the name of the solver you want to use. All files in the `input/` directory will be processed sequentially using the specified solver.
+Replace `<capacity>` with the maximum capacity of the vehicles, `<max_stops>` with the maximum number of stops allowed, and `<solver>` with the name of the solver you want to use.
 
 #### 7. Example Input File:
 Below is an example input file format that can be used as input for the program. Save it as a text file and place it in the input/ directory.
