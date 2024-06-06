@@ -1,7 +1,5 @@
 # Vehicle Routing Optimization
 
-Supercomputing discipline
-
 Felipe Catapano Emrich Melo
 
 ## Project Context
@@ -74,3 +72,66 @@ Upon solving each VRP instance, the project evaluates and prints the best route 
 
 6. Input File Generation
 For testing and experimentation purposes, the project provides scripts for generating input files representing VRP instances. These scripts enable users to create custom VRP scenarios, facilitating thorough testing and validation of the solvers.
+
+## Usage Instructions
+
+To use the VRP Solver, follow these steps:
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/MekhyW/Vehicle-routing-optimization.git
+```
+
+#### 2. Install Python Requirements: 
+```bash
+pip install -r requirements.txt
+```
+
+#### 3. Check MPI and OpenMP Installation
+Make sure that mpic++ is installed on your system with OpenMP support. This is required for compiling and running the parallelized solvers.
+
+#### 4. Compile the Project
+```bash
+make
+```
+
+#### 5. Generate Input Graphs
+You can generate input graphs programmatically using the provided Python script or create them manually. To generate input graphs using the provided script, run:
+```bash
+python tools/graph_gen.py <num_nodes>
+```
+This will generate a graph with the specified number of nodes and save it to a file named `graph-<num_nodes>.txt`.
+
+#### 6. Run the Program
+After generating input graphs or preparing them manually, you can execute the program. Use the following command:
+```bash
+./main <capacity> <solver>
+```
+Replace `<capacity>` with the maximum capacity of the vehicles and `<solver>` with the name of the solver you want to use. All files in the `input/` directory will be processed sequentially using the specified solver.
+
+#### 7. Example Input File:
+Below is an example input file format that can be used as input for the program. Save it as a text file and place it in the input/ directory.
+```
+5
+1 5
+2 6
+3 4
+4 4
+10
+0 1 22
+1 0 22
+0 2 47
+2 0 47
+0 3 23
+3 0 23
+0 4 30
+4 0 30
+1 4 14
+2 3 71
+```
+
+#### 8. Submitting Jobs to a Cluster
+If you are running the program on a cluster environment, you can use the provided SLURM scripts to submit jobs. Modify the scripts as needed and submit them using:
+```bash
+sbatch slurm/{script_name}.slurm
+```
