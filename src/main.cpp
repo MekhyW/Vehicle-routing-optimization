@@ -57,12 +57,20 @@ void PrintBestCombination(const vector<vector<int>>& bestCombination, Graph& gra
     std::cout << "Smallest cost: " << bestCost << endl;
 }
 
-void LogTimeToFile(const string& filename, long long duration) {
+void LogToFile(const string& filename, long long duration, const vector<vector<int>>& routes, const Graph& graph, int bestCost) {
     ofstream clearfile(filename, ios::out | ios::trunc);
     clearfile.close();
     ofstream outfile(filename, ios::out | ios::app);
     if (outfile.is_open()) {
-        outfile << duration << endl;
+        outfile << "Time taken by solver: " << duration << " ms" << endl;
+        outfile << "Best cost: " << bestCost << endl;
+        for (const auto& route : routes) {
+            outfile << "Route: ";
+            for (const auto& node : route) {
+                outfile << node << " ";
+            }
+            outfile << endl;
+        }
         outfile.close();
     } else {
         cerr << "Unable to open file: " << filename << endl;
@@ -97,7 +105,7 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start).count();
     std::cout << "Time taken by solver: " << duration << " ms" << endl;
-    LogTimeToFile(output_file, duration);
+    LogToFile(output_file, duration, routes, graph, bestCost);
     PrintBestCombination(routes, graph, bestCost);
 }
 
@@ -112,7 +120,7 @@ int main(int argc, char* argv[]) {
     for (const auto& entry : fs::directory_iterator("input")) {
         if (entry.is_regular_file() && entry.path().filename() != ".gitkeep") {
             string input_file = entry.path().string();
-            string output_file = "output/" + entry.path().filename().string() + "_time.txt";
+            string output_file = "output/" + entry.path().filename().string() + "_output.txt";
             std::cout << "Solving: " << input_file << endl;
             SolveAndLogTime(input_file, capacity, solver, output_file);
         }
