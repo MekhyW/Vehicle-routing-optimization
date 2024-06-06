@@ -312,3 +312,105 @@ void OpenMPSolver::FindBestCombination(const vector<vector<int>>& routes, vector
     }
 }
 ```
+
+
+## MPI Solver
+
+Simmilarly to the OpenMP solver, the MPI Solver extends the brute force approach by using parallel computing capabilities, but this time with a distributed memory model instead of shared memory. It is intended for use in a multimachine cluster environment, where multiple processes (in multiple pools of memory) are allocated to solve the VRP.
+
+#### Parallelization Strategy
+
+- This Solver distributes the task of evaluating route combinations across multiple processes. Each process works on a subset of the total combinations, significantly reducing the overall computation time for large problem instances
+
+- It dynamically divides the route combinations among the available processes. Each process independently evaluates its assigned combinations, ensuring a balanced workload distribution
+
+- The solver employs MPI for communication between processes. It uses MPI functions for data sharing, such as broadcasting the best cost found and reducing local best results to determine the global best solution
+
+- After local evaluations, the results are synchronized and aggregated to find the global best solution. This involves reducing the local best costs and combining the best combinations from each process to determine the optimal route configuration
+
+#### Implementation details
+
+The distributeWork function calculates the start and end indices of the route combinations assigned to each process, ensuring an even distribution of work
+```cpp
+void MPISolver::distributeWork(const vector<vector<int>>& routes, int& start, int& end, MPI_Comm comm) {
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+    int routeCount = routes.size();
+    int routesPerProcess = routeCount / size;
+    int remainder = routeCount % size;
+    start = rank * routesPerProcess + min(rank, remainder);
+    end = start + routesPerProcess + (rank < remainder ? 1 : 0);
+}
+```
+
+FindBestCombination in this case is run in subsets of the route combinations, with each process evaluating its assigned combinations. The best cost and combination are then reduced across all processes to determine the global optimal solution
+```cpp
+void MPISolver::FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, int index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph, MPI_Comm comm) {
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+    int start, end;
+    distributeWork(routes, start, end, comm);
+    stack<pair<int, int>> stack;
+    stack.push(make_pair(index, 0));
+    int localBestCost = INT_MAX;
+    vector<vector<int>> localBestCombination;
+    while (!stack.empty()) {
+        auto [i, option] = stack.top();
+        stack.pop();
+        if (option == 0) {
+            if (coversAllCities(currentCombination, places)) {
+                int totalCost = 0;
+                for (const auto& route : currentCombination) {
+                    totalCost += graph.calculateRouteCost(route);
+                }
+                if (totalCost < localBestCost) {
+                    localBestCost = totalCost;
+                    localBestCombination = currentCombination;
+                }
+                continue;
+            }
+        }
+        if (option == 0 && i >= start && i < end && static_cast<size_t>(i) < routes.size()) {
+            currentCombination.push_back(routes[i]);
+            stack.push(make_pair(i, 1));
+            stack.push(make_pair(i + 1, 0));
+        } else if (option == 1) {
+            currentCombination.pop_back();
+            stack.push(make_pair(i + 1, 0));
+        }
+    }
+    MPI_Allreduce(&localBestCost, &bestCost, 1, MPI_INT, MPI_MIN, comm);
+    if (localBestCost == bestCost) {
+        bestCombination = localBestCombination;
+    }
+    for (int i = 0; i < size; ++i) {
+        if (i == rank) {
+            for (const auto& route : bestCombination) {
+                int routeSize = route.size();
+                MPI_Send(&routeSize, 1, MPI_INT, 0, 0, comm);
+                MPI_Send(route.data(), routeSize, MPI_INT, 0, 0, comm);
+            }
+        } else if (rank == 0) {
+            vector<vector<int>> tempCombination;
+            for (size_t j = 0; j < bestCombination.size(); ++j) {
+                int routeSize;
+                MPI_Recv(&routeSize, 1, MPI_INT, i, 0, comm, MPI_STATUS_IGNORE);
+                vector<int> route(routeSize);
+                MPI_Recv(route.data(), routeSize, MPI_INT, i, 0, comm, MPI_STATUS_IGNORE);
+                tempCombination.push_back(route);
+            }
+            if (coversAllCities(tempCombination, places)) {
+                int tempCost = 0;
+                for (const auto& route : tempCombination) {
+                    tempCost += graph.calculateRouteCost(route);
+                }
+                if (tempCost < bestCost) {
+                    bestCost = tempCost;
+                    bestCombination = tempCombination;
+                }
+            }
+        }
+    }
+}
