@@ -77,7 +77,7 @@ void LogToFile(const string& filename, long long duration, const vector<vector<i
     }
 }
 
-void SolveAndLogTime(const string& file, int capacity, const string& solver, const string& output_file) {
+void SolveAndLogTime(const string& file, int capacity, int max_stops, const string& solver, const string& output_file) {
     Graph graph;
     map<int,int> demand;
     vector<tuple<int, int , int>> edges;
@@ -87,17 +87,17 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
     vector<vector<int>> routes;
     auto start = high_resolution_clock::now();
     if (solver == "bruteforce") {
-        routes = BruteForceSolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = BruteForceSolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else if (solver == "bruteforce-es") {
-        routes = BruteForceESSolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = BruteForceESSolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else if (solver == "heuristic") {
-        routes = HeuristicSolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = HeuristicSolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else if (solver == "openmp") {
-        routes = OpenMPSolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = OpenMPSolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else if (solver == "openmp-mpi") {
-        routes = OpenMPMPISolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = OpenMPMPISolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else if (solver == "mpi") {
-        routes = MPISolver::solve(places, demand, capacity, 6, graph, bestCost);
+        routes = MPISolver::solve(places, demand, capacity, max_stops, graph, bestCost);
     } else {
         cerr << "Unknown solver: " << solver << endl;
         return;
@@ -110,19 +110,20 @@ void SolveAndLogTime(const string& file, int capacity, const string& solver, con
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cout << "Usage: " << argv[0] << " <capacity> <solver>" << endl;
+    if (argc < 4) {
+        std::cout << "Usage: " << argv[0] << " <capacity> <max_stops> <solver>" << endl;
         std::cout << "Available solvers: bruteforce, bruteforce-es, heuristic, openmp, mpi, openmp-mpi" << endl;
         return 1;
     }
     int capacity = stoi(argv[1]);
-    string solver = argv[2];
+    int max_stops = stoi(argv[2]);
+    string solver = argv[3];
     for (const auto& entry : fs::directory_iterator("input")) {
         if (entry.is_regular_file() && entry.path().filename() != ".gitkeep") {
             string input_file = entry.path().string();
             string output_file = "output/" + entry.path().filename().string() + "_output.txt";
             std::cout << "Solving: " << input_file << endl;
-            SolveAndLogTime(input_file, capacity, solver, output_file);
+            SolveAndLogTime(input_file, capacity, max_stops, solver, output_file);
         }
     }
     return 0;
