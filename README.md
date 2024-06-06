@@ -199,3 +199,116 @@ The following YouTube video, by the professor Tim Roughgarden is an excellent in
 This solver offers extremely improved computational efficiency compared to brute force. By employing the 2-opt swap heuristic, the solver achieves near linear time complexity, making it suitable for handling larger problem instances or scenarios with limited hardware resources.
 
 In tests, the Heuristic Solver has demonstrated remarkable performance, solving VRP instances with up to 1000 cities in just a hundred milliseconds even without any form of parallelization (since the local convergence is achieved with very few loop iterations). This is achieved while still producing good solutions for when the optimal solution is not necessary.
+
+
+## OpenMP Solver
+
+This extends the brute force approach by using parallel computing capabilities with the OpenMP (omp) library. This solver aims to accelerate the exhaustive search process by distributing tasks across multiple threads, thus reducing the overall computation time for larger input sizes, although some overhead is introduced due to thread management which can outweigh the benefits for small input sizes.
+
+#### Parallelization Strategy
+
+- The OpenMP Solver utilizes OpenMP's task parallelism to distribute the work of finding the best combination of routes across multiple threads. Each thread independently explores different parts of the search space, which significantly speeds up the solution process for larger problem instances
+
+- All possible valid route combinations are generated in parallel. This process involves checking each subset of places for capacity constraints, maximum stops, and route validity. By parallelizing this step, the solver quickly creates the initial set of routes to be evaluated
+
+- When calculating the total cost of routes, the OpenMP Solver employs a parallel reduction operation. This ensures that the cost calculation is efficiently distributed across threads and aggregated correctly
+''
+- The solver dynamically sets the number of threads to the maximum available on the system. This ensures optimal utilization of available computational resources without manual configuration
+
+#### Implementation details
+
+The solve function orchestrates the parallel execution of route evaluations. It generates all possible route combinations and then assigns tasks to threads to evaluate these combinations and find the best solution
+```cpp
+vector<vector<int>> OpenMPSolver::solve(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph, int& bestCost) {
+    vector<vector<int>> routes = GenerateAllCombinations(places, demand, capacity, max_stops, graph);
+    vector<vector<int>> bestCombination;
+    int num_threads = omp_get_max_threads();
+    omp_set_num_threads(num_threads);
+    #pragma omp parallel
+    {
+        #pragma omp single nowait
+        {
+            for (size_t i = 0; i < routes.size(); ++i) {
+                #pragma omp task
+                {
+                    vector<vector<int>> currentCombination;
+                    FindBestCombination(routes, currentCombination, i, places, bestCost, bestCombination, graph);
+                }
+            }
+        }
+    }
+    return bestCombination;
+}
+```
+
+GenerateAllCombinations creates all valid route combinations in parallel, ensuring that each combination adheres to capacity constraints and maximum stops per route
+```cpp
+vector<vector<int>> OpenMPSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph) {
+    vector<vector<int>> routes;
+    int n = places.size();
+    vector<vector<int>> all_routes(1 << n);
+    #pragma omp parallel for
+    for (int i = 1; i < (1 << n); i++) {
+        vector<int> route;
+        int total_demand = 0;
+        unordered_map<int, int> place_count;
+        bool invalid = false;
+        for (int j = 0; j < n; j++) {
+            if (i & (1 << j)) {
+                int place = places[j];
+                route.push_back(place);
+                total_demand += demand.at(place);
+                place_count[place]++;
+                if (total_demand > capacity || place_count[place] > max_stops || !graph.verifyValidRoute(route)) {
+                    invalid = true;
+                    break;
+                }
+            }
+        }
+        if (!invalid) {
+            all_routes[i] = route;
+        }
+    }
+    for (int i = 1; i < (1 << n); i++) {
+        if (!all_routes[i].empty()) {
+            routes.push_back(all_routes[i]);
+        }
+    }
+    return routes;
+}
+```
+
+FindBestCombination evaluates each combination of routes in parallel. It uses OpenMP tasks to assign different parts of the search space to different threads, ensuring efficient exploration and updating of the best solution found. The critical section is used to ensure that only one thread updates the best cost and combination and there are no race conditions.
+```cpp
+void OpenMPSolver::FindBestCombination(const vector<vector<int>>& routes, vector<vector<int>>& currentCombination, size_t index, const vector<int>& places, int& bestCost, vector<vector<int>>& bestCombination, Graph& graph) {
+    stack<pair<int, int>> stack;
+    stack.push(make_pair(index, 0));
+    while (!stack.empty()) {
+        pair<int, int> top = stack.top();
+        stack.pop();
+        int i = top.first;
+        int option = top.second;
+        if (option == 0) {
+            if (coversAllCities(currentCombination, places)) {
+                int totalCost = CalculateTotalCost(currentCombination, graph);
+                if (totalCost < bestCost) {
+                    #pragma omp critical
+                    {
+                        bestCost = totalCost;
+                        bestCombination = currentCombination;
+                    }
+                }
+                continue;
+            }
+        }
+        if (option == 0 && static_cast<size_t>(i) < routes.size()) {
+            currentCombination.push_back(routes[i]);
+            stack.push(make_pair(i, 1));
+            stack.push(make_pair(i + 1, 0));
+        } else if (option == 1) {
+            currentCombination.pop_back();
+            stack.push(make_pair(i + 1, 0));
+        }
+    }
+}
+```
