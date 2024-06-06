@@ -135,3 +135,46 @@ If you are running the program on a cluster environment, you can use the provide
 ```bash
 sbatch slurm/{script_name}.slurm
 ```
+
+## Brute Force Solver
+
+The Brute Force Solver implements a straightforward strategy to solve the Vehicle Routing Problem by exhaustively evaluating all possible combinations of routes, using a stack to keep track of the current route and its options. It serves as the baseline for improvements and optimizations in the subsequent solvers.
+
+![Baseline Steps](docs/QhsPSkgB2YQSerBsnjqqEo.png)
+
+The strategy implemented in the Brute Force Solver can be summarized as follows:
+
+#### Generate All Route Combinations:
+
+The solver generates all possible combinations of routes by iterating through subsets of cities (places).
+For each subset of cities, it forms a potential route by including all possible permutations of cities within the subset.
+#### Filter Invalid Routes:
+
+During route generation, the solver checks for route validity by considering constraints such as vehicle capacity, maximum stops per route, and the validity of the route according to the problem's constraints.
+If a generated route violates any constraint, it is discarded.
+#### Find the Best Combination:
+
+After generating all valid route combinations, the solver iterates through each combination to evaluate its total cost.
+It maintains the best combination found so far, updating it whenever a combination with a lower total cost is encountered.
+#### Return Optimal Solution:
+
+Once all combinations have been evaluated, the solver returns the combination with the lowest total cost as the optimal solution to the VRP.
+
+#### Key Functions:
+- GenerateAllCombinations: Generates all possible combinations of routes by iterating through subsets of cities and forming routes with valid combinations of cities while considering constraints such as vehicle capacity and maximum stops per route.
+
+- coversAllCities: Checks if a combination of routes covers all cities in the problem instance, ensuring that no city is left unvisited.
+
+- FindBestCombination: Iterates through all generated route combinations, evaluating their total cost and updating the best combination found so far.
+
+
+## Brute Force with Early Stopping (Brute Force ES)
+
+The Brute Force with Early Stopping (Brute Force ES) solver follows the same algorithmic approach as the regular Brute Force solver. However, it incorporates a very simple optimization technique known as Early Stopping to reduce the search space and improve computational efficiency, by halting the search process as soon as a total cost higher than the current best cost is found.
+
+Unlike the regular Brute Force solver, the ES version does not guarantee finding the global optimal solution. This is because the search may be terminated prematurely if a suboptimal solution is encountered early in the search process.
+
+However, by stopping the search early whenever a combination with a higher total cost is found, this drastically reduces the search space compared to the regular Brute Force solver. This leads to significant improvements in computational efficiency, especially for large problem instances.
+
+#### Demonstration of Exponential Nature
+The Brute Force ES solver serves as an excellent demonstration of the exponential nature of the Vehicle Routing Problem (VRP). As the input graph size increases, the time taken by the solver approximately doubles for each increment in the input graph size.
