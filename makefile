@@ -1,4 +1,4 @@
-CXX = g++
+CXX = mpic++
 CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -fopenmp -I$(INCLUDE_DIR)
 BUILD_DIR = build
 SRC_DIR = src
