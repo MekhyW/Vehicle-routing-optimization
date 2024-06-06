@@ -22,6 +22,41 @@ This project presents a C++ application designed to solve the VRP using various 
 
 - Starting and Arriving Point: All vehicles start and end their routes at the company's warehouse. This requirement ensures a practical implementation of the routing solution, where all vehicles return to the base after completing their deliveries.
 
+## File Structure
+
+```
+.
+├── build/
+│   ├── (This directory holds the compiled files generated during the compilation process.)
+├── include/
+│   ├── (Header files (.h) required for the project. These files define classes, functions, and constants used throughout the project)
+│   ├── brute_force_ES_solver.h
+│   ├── brute_force_solver.h
+│   ├── graph_class.h
+│   ├── heuristic_solver.h
+│   ├── mpi_solver.h
+│   ├── openmp_solver.h
+│   └── openmp-mpi_solver.h
+├── docs/
+│   ├── (Documentation files)
+├── input/
+│   ├── (This directory contains input text files representing different problem instances for the Vehicle Routing Problem. Each text file is parsed as an instance of the problem)
+├── output/
+│   ├── (Holds output files containing answers and solver execution times for each problem instance. These files are generated during the execution of the solvers)
+├── slurm/
+│   ├── (Files designed to facilitate execution in a cluster environment)
+├── solvers/
+│   ├── (C++ files (.cpp) for each solver implementation. These files contain the actual code for solving the Vehicle Routing Problem using various algorithms and techniques)
+├── src/
+│   ├── main.cpp
+│   └── graph_class.cpp
+├── tools/
+│   ├── (Python scripts for generating input files, validation, and benchmarking)
+├── makefile
+├── README.md
+└── requirements.txt
+```
+
 
 ## Project Features
 
