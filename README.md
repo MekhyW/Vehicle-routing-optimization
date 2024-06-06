@@ -178,3 +178,24 @@ However, by stopping the search early whenever a combination with a higher total
 
 #### Demonstration of Exponential Nature
 The Brute Force ES solver serves as an excellent demonstration of the exponential nature of the Vehicle Routing Problem (VRP). As the input graph size increases, the time taken by the solver approximately doubles for each increment in the input graph size.
+
+
+## Heuristic Solver
+
+The Heuristic Solver implements a simple yet effective heuristic approach to solve VRP. Heuristic algorithms are designed to find approximate solutions to complex optimization problems in a reasonable amount of time, sacrificing global optimality for computational efficiency.
+
+#### The 2-Opt Swap Algorithm
+
+The core of the heuristic approach lies in the local search algorithm, which iteratively improves the initial solution by performing 2-opt swaps. 
+
+A 2-opt swap involves removing two edges from the current route and reconnecting them in a different way to potentially reduce the total cost of the route. This process continues until no further improvements can be made.
+
+The following YouTube video, by the professor Tim Roughgarden is an excellent in-depth explanation of the 2-opt swap algorithm and its application in the context of the Traveling Salesman Problem (TSP), which is a closely related problem to the VRP:
+
+[![2-Opt Swap Algorithm](https://img.youtube.com/vi/dYEWqrp-mho/0.jpg)](https://www.youtube.com/watch?v=dYEWqrp-mho&ab_channel=TimRoughgardenLectures)
+
+#### High Efficiency/Scalability
+
+This solver offers extremely improved computational efficiency compared to brute force. By employing the 2-opt swap heuristic, the solver achieves near linear time complexity, making it suitable for handling larger problem instances or scenarios with limited hardware resources.
+
+In tests, the Heuristic Solver has demonstrated remarkable performance, solving VRP instances with up to 1000 cities in just a hundred milliseconds even without any form of parallelization (since the local convergence is achieved with very few loop iterations). This is achieved while still producing good solutions for when the optimal solution is not necessary.
