@@ -30,6 +30,8 @@ vector<vector<int>> OpenMPSolver::solve(const vector<int>& places, const map<int
 vector<vector<int>> OpenMPSolver::GenerateAllCombinations(const vector<int>& places, const map<int, int>& demand, int capacity, int max_stops, Graph& graph) {
     vector<vector<int>> routes;
     int n = places.size();
+    vector<vector<int>> all_routes(1 << n);
+    #pragma omp parallel for
     for (int i = 1; i < (1 << n); i++) {
         vector<int> route;
         int total_demand = 0;
@@ -48,7 +50,12 @@ vector<vector<int>> OpenMPSolver::GenerateAllCombinations(const vector<int>& pla
             }
         }
         if (!invalid) {
-            routes.push_back(route);
+            all_routes[i] = route;
+        }
+    }
+    for (int i = 1; i < (1 << n); i++) {
+        if (!all_routes[i].empty()) {
+            routes.push_back(all_routes[i]);
         }
     }
     return routes;
