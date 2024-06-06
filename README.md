@@ -205,6 +205,8 @@ In tests, the Heuristic Solver has demonstrated remarkable performance, solving 
 
 This extends the brute force approach by using parallel computing capabilities with the OpenMP (omp) library. This solver aims to accelerate the exhaustive search process by distributing tasks across multiple threads, thus reducing the overall computation time for larger input sizes, although some overhead is introduced due to thread management which can outweigh the benefits for small input sizes.
 
+If you need to solve large instances of the VRP (globally) and do not have access to a cluster environment but have a multi-core machine, this might be the best option for you.
+
 #### Parallelization Strategy
 
 - The OpenMP Solver utilizes OpenMP's task parallelism to distribute the work of finding the best combination of routes across multiple threads. Each thread independently explores different parts of the search space, which significantly speeds up the solution process for larger problem instances
@@ -414,3 +416,18 @@ void MPISolver::FindBestCombination(const vector<vector<int>>& routes, vector<ve
         }
     }
 }
+```
+
+
+## OpenMP-MPI Solver
+
+Finally, the OpenMP-MPI Solver combines the parallelization techniques of both OpenMP and MPI to leverage the benefits of shared and distributed memory models.
+
+This solver was created by improving the MPI solver, introducing additional parallelism within each MPI process using OpenMP. This allows for concurrent execution of tasks within each process, reducing the overall computation time further than using MPI alone. This is specially true in cases where load balancing would be an issue with MPI alone.
+
+It is intended for large cluster environments and supercomputers, where each subprocess still has strong computational resources to benefit from OpenMP parallelism and further speed up the solution process.
+
+Just like with the OpenMP Solver, GenerateAllCombinations is parallelized in threads and cost calulation is done in parallel as well. The FindBestCombination function is also parallelized using OpenMP tasks to evaluate different parts of the search space concurrently. Work is distributed among MPI processes, and within each process, OpenMP tasks are used to evaluate route combinations in parallel, with the results being synchronized using MPI_Allreduce to find the global best solution.
+```cpp
+MPI_Allreduce(MPI_IN_PLACE, &bestCost, 1, MPI_INT, MPI_MIN, comm);
+```
