@@ -445,3 +445,8 @@ After running a solver on a set of problem instances, run the tool with the foll
 python tools/plotter.py
 ```
 And two plots will be shown on screen using the matplotlib GUI: one in linear scale and one in logarithmic scale. You can use it to adjust plot parameters and save the plot to an image file for further analysis later.
+
+
+## Contributing
+
+Contributions to the project are welcome! If you found this project interesting or useful and have any ideas, suggestions, or improvements, feel free to submit a pull request or open an issue. Your feedback is valuable and helps enhance the project for the community of users :)
