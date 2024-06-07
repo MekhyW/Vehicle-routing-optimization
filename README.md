@@ -131,9 +131,16 @@ Below is an example input file format that can be used as input for the program.
 ```
 
 #### 8. Submitting Jobs to a Cluster
-If you are running the program on a cluster environment, you can use the provided SLURM scripts to submit jobs. Modify the scripts as needed and submit them using:
+If you are running the program on a cluster environment, you can use the vrp.slurm script to submit jobs (test.slurm can also be used to test the environment). Modify the script if you need and submit using:
 ```bash
-sbatch slurm/{script_name}.slurm
+export VEHICLE_CAPACITY=<capacity>
+export MAX_STOPS=<max_stops>
+export SOLVER=<solver>
+sbatch slurm/vrp.slurm
+```
+And the job will be submitted to the cluster. You can monitor using:
+```bash
+squeue -u <username>
 ```
 
 ## Brute Force Solver
