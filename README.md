@@ -64,8 +64,8 @@ The project offers a variety of solvers to tackle the Vehicle Routing Problem (V
 2. Batch Processing
 The project also includes batch processing capabilities. Users can provide a directory containing input files for VRP instances, and the script will automatically iterate through them, solving each instance sequentially.
 
-3. Logging
-To enable performance analysis and benchmarking, it incorporates logging functionality. Execution times of each solver are logged to individual output files, providing insights into solver efficiency and performance across different VRP instances.
+3. Plotter
+To enable performance analysis and benchmarking, it incorporates a plotter script. Execution times of each solver are logged to individual output files, providing insights into solver efficiency and performance across different VRP instances.
 
 5. Solution Evaluation
 Upon solving each VRP instance, the project evaluates and prints the best route combination found by the selected solver. Additionally, it displays the associated cost of the optimized route, aiding in assessing the quality and effectiveness of the solution approach.
@@ -100,7 +100,7 @@ You can generate input graphs programmatically using the provided Python script 
 ```bash
 python tools/graph_gen.py <num_nodes>
 ```
-This will generate a graph with the specified number of nodes and save it to a file named `graph-<num_nodes>.txt`.
+This will generate a graph with the specified number of nodes and save it to a file named `graph-<num_nodes>.txt`. Put the generated file in the input/ directory. If you are writing your own input files manually, make sure to follow the same naming convention.
 
 #### 6. Run the Program
 After generating input graphs or preparing them manually, you can execute the program. Use the following command:
@@ -431,3 +431,17 @@ Just like with the OpenMP Solver, GenerateAllCombinations is parallelized in thr
 ```cpp
 MPI_Allreduce(MPI_IN_PLACE, &bestCost, 1, MPI_INT, MPI_MIN, comm);
 ```
+
+
+## Performance Analysis
+
+In order to evaluate the performance of the solvers, the script tools/plotter.py can be used to generate plots of the execution times for each solver across different problem instances. 
+
+![Performance analysis - linear scale](docs/plot_linear.png)
+![Performance analysis - logarithmic scale](docs/plot_loglog.png)
+
+After running a solver on a set of problem instances, run the tool with the following command:
+```bash
+python tools/plotter.py
+```
+And two plots will be shown on screen using the matplotlib GUI: one in linear scale and one in logarithmic scale. You can use it to adjust plot parameters and save the plot to an image file for further analysis later.

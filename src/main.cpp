@@ -57,7 +57,7 @@ void PrintBestCombination(const vector<vector<int>>& bestCombination, Graph& gra
     std::cout << "Smallest cost: " << bestCost << endl;
 }
 
-void LogToFile(const string& filename, long long duration, const vector<vector<int>>& routes, const Graph& graph, int bestCost) {
+void LogToFile(const string& filename, long long duration, const vector<vector<int>>& routes, int bestCost) {
     ofstream clearfile(filename, ios::out | ios::trunc);
     clearfile.close();
     ofstream outfile(filename, ios::out | ios::app);
@@ -105,7 +105,7 @@ void SolveAndLogTime(const string& file, int capacity, int max_stops, const stri
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start).count();
     std::cout << "Time taken by solver: " << duration << " ms" << endl;
-    LogToFile(output_file, duration, routes, graph, bestCost);
+    LogToFile(output_file, duration, routes, bestCost);
     PrintBestCombination(routes, graph, bestCost);
 }
 
